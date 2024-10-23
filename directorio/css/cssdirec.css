@@ -20,11 +20,11 @@ body {
         }
 
         .hidden-info {
-            display: none; /* Información oculta por defecto */
+            display: none;
         }
 
         .nombre-link {
-            color: #8f3237; /* Color del nombre */
+            color: #8f3237;
             font-weight: bold;
             cursor: pointer;
         }
