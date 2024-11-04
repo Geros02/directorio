@@ -27,6 +27,7 @@ if (!empty($search_query)) {
 if (!empty($filter_letter)) {
     $sql .= " AND nombre LIKE '" . $conn->real_escape_string($filter_letter) . "%'";
 }
+$sql .= " ORDER BY nombre ASC";
 
 $result = $conn->query($sql);
 
@@ -46,16 +47,32 @@ $tipos = $conn->query("SELECT DISTINCT tipo FROM directorio_general");
     <title>Directorio</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/cssdirec.css">
-        
+    <style >
+        .header-images {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+        }
+        .header-images img {
+            height: 120px;
+        }
     </style>
 </head>
 <body>
-
+    <div class="header-images">
+        <img src="https://altamira.gob.mx/op/images/altamira.png" alt="Logo Altamira">
+        <img src="https://altamira.gob.mx/altamira_somos_todos.png" alt="Altamira Somos Todos">
+    </div>
     <div class="container">
         <h2 class="mt-5 text-center">Directorio</h2>
         
         <form method="GET" action="directorio.php" class="mb-4">
             <div class="form-row">
+                <div class="form-group col-md-3">
+                    <label for="search_query">Buscar por nombre</label>
+                    <input type="text" name="search_query" id="search_query" class="form-control" value="<?php echo htmlspecialchars($search_query); ?>">
+                </div>
                 <div class="form-group col-md-3">
                     <label for="filter_dependencia">Dependencia</label>
                     <select name="filter_dependencia" id="filter_dependencia" class="form-control">
@@ -70,7 +87,7 @@ $tipos = $conn->query("SELECT DISTINCT tipo FROM directorio_general");
                     </select>
                 </div>
                 <div class="form-group col-md-3">
-                    <label for="filter_tipo">Tipo</label>
+                    <label for="filter_tipo">Lugar</label>
                     <select name="filter_tipo" id="filter_tipo" class="form-control">
                         <option value="">Todos</option>
                         <?php if ($tipos->num_rows > 0): ?>
@@ -82,19 +99,15 @@ $tipos = $conn->query("SELECT DISTINCT tipo FROM directorio_general");
                         <?php endif; ?>
                     </select>
                 </div>
-                <div class="form-group col-md-3">
-                    <label for="search_query">Buscar por nombre</label>
-                    <input type="text" name="search_query" id="search_query" class="form-control" value="<?php echo htmlspecialchars($search_query); ?>">
-                </div>
-                <div class="form-group col-md-3">
-                    <label>&nbsp;</label>
-                    <button type="submit" class="btn btn-primary btn-block">Buscar</button>
+                <div class="form-group col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary mr-2">Buscar</button>
+                    <a href="directorio.php" class="btn btn-secondary">Limpiar</a>
                 </div>
             </div>
         </form>
 
         <div class="letter-filter">
-            <strong>Filtrar por letra:</strong>
+            <strong>Filtrar nombre por letra:</strong>
             <?php foreach (range('A', 'Z') as $letter): ?>
                 <a href="directorio.php?filter_letter=<?php echo $letter; ?>&filter_dependencia=<?php echo htmlspecialchars($filter_dependencia); ?>&filter_tipo=<?php echo htmlspecialchars($filter_tipo); ?>&search_query=<?php echo htmlspecialchars($search_query); ?>"><?php echo $letter; ?></a>
             <?php endforeach; ?>
@@ -107,32 +120,49 @@ $tipos = $conn->query("SELECT DISTINCT tipo FROM directorio_general");
                 </tr>
             </thead>
             <tbody>
-                <?php if ($result->num_rows > 0): ?>
-                    <?php while($row = $result->fetch_assoc()): ?>
-                        <tr>
-                            <td>
-                                <a href="#" class="nombre-link" data-id="<?php echo $row['id']; ?>">
-                                    <?php echo htmlspecialchars($row['nombre']); ?> 
-                                    <?php echo (!empty($row['rango'])) ? "({$row['rango']})" : ''; ?>
-                                </a>
-                                
-                                <div class="hidden-info" id="info-<?php echo $row['id']; ?>">
-                                    <p><strong>Dependencia:</strong> <?php echo htmlspecialchars($row['dependencia']); ?></p>
-                                    <p><strong>Correo:</strong> <?php echo htmlspecialchars($row['correo']); ?></p>
-                                    <p><strong>Teléfono:</strong> <?php echo htmlspecialchars($row['numerotelef']); ?></p>
-                                    <p><strong>Edificio:</strong> <?php echo htmlspecialchars($row['edificio']); ?></p>
-                                    <p><strong>Extensión:</strong> <?php echo htmlspecialchars($row['ext']); ?></p>
-                                    <p><strong>Tipo:</strong> <?php echo htmlspecialchars($row['tipo']); ?></p>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php endwhile; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="7" class="text-center">No se encontraron resultados</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
+    <?php if ($result->num_rows > 0): ?>
+        <?php while($row = $result->fetch_assoc()): ?>
+            <tr>
+                <td>
+                    <a class="nombre-link" data-id="<?php echo $row['id']; ?>">
+                        <?php echo htmlspecialchars($row['nombre']); ?> 
+                        <?php echo (!empty($row['rango'])) ? "({$row['rango']})" : ''; ?>
+                    </a>
+
+                    <div class="hidden-info" id="info-<?php echo $row['id']; ?>">
+                        <?php if (!empty($row['dependencia'])): ?>
+                            <p><strong>Dependencia:</strong> <?php echo htmlspecialchars($row['dependencia']); ?></p>
+                        <?php endif; ?>
+
+                        <?php if (!empty($row['correo'])): ?>
+                            <p><strong>Correo:</strong> <?php echo htmlspecialchars($row['correo']); ?></p>
+                        <?php endif; ?>
+
+                        <?php if (!empty($row['numerotelef'])): ?>
+                            <p><strong>Teléfono:</strong> <?php echo htmlspecialchars($row['numerotelef']); ?></p>
+                        <?php endif; ?>
+
+                        <?php if (!empty($row['edificio'])): ?>
+                            <p><strong>Edificio:</strong> <?php echo htmlspecialchars($row['edificio']); ?></p>
+                        <?php endif; ?>
+
+                        <?php if (!empty($row['ext'])): ?>
+                            <p><strong>Extensión:</strong> <?php echo htmlspecialchars($row['ext']); ?></p>
+                        <?php endif; ?>
+
+                        <?php if (!empty($row['tipo'])): ?>
+                            <p><strong>Lugar:</strong> <?php echo htmlspecialchars($row['tipo']); ?></p>
+                        <?php endif; ?>
+                    </div>
+                </td>
+            </tr>
+        <?php endwhile; ?>
+    <?php else: ?>
+        <tr>
+            <td colspan="7" class="text-center">No se encontraron resultados</td>
+        </tr>
+    <?php endif; ?>
+</tbody>
         </table>
     </div>
 
@@ -154,3 +184,4 @@ $tipos = $conn->query("SELECT DISTINCT tipo FROM directorio_general");
 
 </body>
 </html>
+
